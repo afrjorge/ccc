@@ -74,6 +74,15 @@ def_Type.add(/** @lends def.Type# */ {
         return def.methods(this, mixin, ka), this;
     },
 
+    mixin: def.meta(function(mixin, ka) {
+        return def.methods(this, mixin, ka), this;
+        }, {configurable: true}),
+
+    mixins: function(mixins, ka) {
+        for(var p in mixins) def.methods(this, mixins[p], ka);
+        return this;
+    },
+
     add: def.meta(function(mixin, ka) {
         return def.methods(this, mixin, ka), this;
     }, {configurable: false}),
