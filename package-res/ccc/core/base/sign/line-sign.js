@@ -44,9 +44,7 @@ def.type('pvc.visual.Line', pvc.visual.Sign)
     // Segmented lines use fill color instead of stroke...so this doesn't work.
     //this.pvMark.lineCap('square');
 })
-.prototype
 .property('strokeWidth')
-.constructor
 .add({
     _addInteractive: function(keyArgs) {
         keyArgs = def.setDefaults(keyArgs, 'noTooltip',  true);

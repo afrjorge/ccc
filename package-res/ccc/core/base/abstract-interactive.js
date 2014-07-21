@@ -30,25 +30,24 @@ def.scope(function() {
     
     def
     .type('pvc.visual.Interactive')
-    .addStatic(I)
-    .addStatic({
+    .type()
+    .add(I)
+    .add({
         ShowsAny:      I.ShowsInteraction | I.ShowsTooltip,
         SelectableAny: I.Selectable | I.SelectableByClick | I.SelectableByRubberband | I.SelectableByFocusWindow 
     })
-    
+    .inst()
     .add({
         _ibits: -1, // all ones instance field
         ibits: function() { return this._ibits; }
      })
-    
     // methods showsActivity, showsSelection, ...
     .add(def.query(def.ownKeys(I))
-            .object({
-                name:  def.firstLowerCase,
-                value: function(p) {
-                    var mask = I[p];
-                    return function() { return !!(this.ibits() & mask); };
-                }
-            })
-    );
+        .object({
+            name:  def.firstLowerCase,
+            value: function(p) {
+                var mask = I[p];
+                return function() { return !!(this.ibits() & mask); };
+            }
+        }));
 });

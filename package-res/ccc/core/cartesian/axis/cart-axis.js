@@ -43,247 +43,244 @@
  */
 
 var pvc_CartesianAxis =
-def
-.type('pvc.visual.CartesianAxis', pvc_Axis)
-.init(function(chart, type, index, keyArgs) {
+def('pvc.visual.CartesianAxis', pvc_Axis.extend({
+    init: function(chart, type, index, keyArgs) {
 
-    var options = chart.options;
+        var options = chart.options;
 
-    // x, y
-    this.orientation = pvc_CartesianAxis.getOrientation(type, options.orientation);
+        // x, y
+        this.orientation = pvc_CartesianAxis.getOrientation(type, options.orientation);
 
-    // x, y, x2, y2, x3, y3, ...
-    this.orientedId = pvc_CartesianAxis.getOrientedId(this.orientation, index);
+        // x, y, x2, y2, x3, y3, ...
+        this.orientedId = pvc_CartesianAxis.getOrientedId(this.orientation, index);
 
-    // secondX, secondY
-    if(chart._allowV1SecondAxis && index === 1)
-        this.v1SecondOrientedId = 'second' + this.orientation.toUpperCase();
+        // secondX, secondY
+        if(chart._allowV1SecondAxis && index === 1)
+            this.v1SecondOrientedId = 'second' + this.orientation.toUpperCase();
 
-    // id
-    // base, ortho, base2, ortho2, ...
+        // id
+        // base, ortho, base2, ortho2, ...
 
-    // scaleType
-    // discrete, continuous, numeric, timeSeries
+        // scaleType
+        // discrete, continuous, numeric, timeSeries
 
-    // common
-    // axis
+        // common
+        // axis
 
-    this.base(chart, type, index, keyArgs);
+        this.base(chart, type, index, keyArgs);
 
-    chart.axes[this.orientedId] = this;
-    if(this.v1SecondOrientedId) chart.axes[this.v1SecondOrientedId] = this;
+        chart.axes[this.orientedId] = this;
+        if(this.v1SecondOrientedId) chart.axes[this.v1SecondOrientedId] = this;
 
-    // For now scale type is left off,
-    // cause it is yet unknown.
-    // In bind, prefixes are recalculated (see _syncExtensionPrefixes)
-    var extensions = this.extensionPrefixes = [
-        this.id + 'Axis',
-        this.orientedId + 'Axis'
-    ];
+        // For now scale type is left off,
+        // cause it is yet unknown.
+        // In bind, prefixes are recalculated (see _syncExtensionPrefixes)
+        var extensions = this.extensionPrefixes = [
+            this.id + 'Axis',
+            this.orientedId + 'Axis'
+        ];
 
-    if(this.v1SecondOrientedId) extensions.push(this.v1SecondOrientedId + 'Axis');
+        if(this.v1SecondOrientedId) extensions.push(this.v1SecondOrientedId + 'Axis');
 
-    this._extPrefAxisPosition = extensions.length;
+        this._extPrefAxisPosition = extensions.length;
 
-    extensions.push('axis');
-})
-.add(/** @lends pvc.visual.CartesianAxis# */{
-
-    bind: function(dataCells) {
-
-        this.base(dataCells);
-
-        this._syncExtensionPrefixes();
-
-        return this;
-    },
-
-    _syncExtensionPrefixes: function() {
-        var extensions = this.extensionPrefixes;
-
-        // remove until 'axis' (inclusive)
-        extensions.length = this._extPrefAxisPosition;
-
-        var st = this.scaleType;
-        if(st) {
-            extensions.push(st + 'Axis'); // specific
-            if(st !== 'discrete') extensions.push('continuousAxis'); // generic
-        }
-
-        // Common
         extensions.push('axis');
     },
 
-    setScale: function(scale) {
-        var oldScale = this.scale;
+    methods: /** @lends pvc.visual.CartesianAxis# */{
 
-        this.base(scale);
+        bind: function(dataCells) {
 
-        if(oldScale) {
-            // If any
-            delete this.domain;
-            delete this.ticks;
-            delete this._roundingPaddings;
-        }
+            this.base(dataCells);
 
-        if(scale) {
-            if(!scale.isNull && this.scaleType !== 'discrete') {
-                // Original data domain, before nice or tick rounding
-                this.domain = scale.domain();
-                this.domain.minLocked = !!scale.minLocked;
-                this.domain.maxLocked = !!scale.maxLocked;
+            this._syncExtensionPrefixes();
 
-                var roundMode = this.option('DomainRoundMode');
-                if(roundMode === 'nice') scale.nice();
+            return this;
+        },
 
-                var tickFormatter = this.option('TickFormatter');
-                if(tickFormatter) scale.tickFormatter(tickFormatter);
+        _syncExtensionPrefixes: function() {
+            var extensions = this.extensionPrefixes;
+
+            // remove until 'axis' (inclusive)
+            extensions.length = this._extPrefAxisPosition;
+
+            var st = this.scaleType;
+            if(st) {
+                extensions.push(st + 'Axis'); // specific
+                if(st !== 'discrete') extensions.push('continuousAxis'); // generic
             }
-        }
 
-        return this;
-    },
+            // Common
+            extensions.push('axis');
+        },
 
-    setTicks: function(ticks) {
-        var scale = this.scale;
+        setScale: function(scale) {
+            var oldScale = this.scale;
 
-        /*jshint expr:true */
-        (scale && !scale.isNull) || def.fail.operationInvalid("Scale must be set and non-null.");
+            this.base(scale);
 
-        this.ticks = ticks;
-
-        if(scale.type !== 'discrete' && this.option('DomainRoundMode') === 'tick') {
-
-            delete this._roundingPaddings;
-
-            // Commit calculated ticks to scale's domain
-            var tickCount = ticks && ticks.length;
-            if(tickCount)
-                this.scale.domain(ticks[0], ticks[tickCount - 1]);
-            else
-                // Reset scale domain
-                this.scale.domain(this.domain[0], this.domain[1]);
-        }
-    },
-
-    setScaleRange: function(size) {
-        var scale  = this.scale;
-        scale.min  = 0;
-        scale.max  = size;
-        scale.size = size; // original size // TODO: remove this...
-
-        // -------------
-
-        if(scale.type === 'discrete') {
-            if(scale.domain().length > 0) { // Has domain? At least one point is required to split.
-                var bandRatio = this.chart.options.panelSizeRatio || 0.8;
-                scale.splitBandedCenter(scale.min, scale.max, bandRatio);
+            if(oldScale) {
+                // If any
+                delete this.domain;
+                delete this.ticks;
+                delete this._roundingPaddings;
             }
-        } else {
-            scale.range(scale.min, scale.max);
-        }
 
-        return scale;
-    },
+            if(scale) {
+                if(!scale.isNull && this.scaleType !== 'discrete') {
+                    // Original data domain, before nice or tick rounding
+                    this.domain = scale.domain();
+                    this.domain.minLocked = !!scale.minLocked;
+                    this.domain.maxLocked = !!scale.maxLocked;
 
-    getScaleRoundingPaddings: function() {
-        var roundingPaddings = this._roundingPaddings;
-        if(!roundingPaddings) {
-            roundingPaddings = {
-                begin: 0,
-                end:   0,
-                beginLocked: false,
-                endLocked:   false
-            };
+                    var roundMode = this.option('DomainRoundMode');
+                    if(roundMode === 'nice') scale.nice();
 
-            var scale = this.scale;
-            if(scale && !scale.isNull && scale.type !== 'discrete') {
-                var originalDomain = this.domain;
-
-                roundingPaddings.beginLocked = originalDomain.minLocked;
-                roundingPaddings.endLocked   = originalDomain.maxLocked;
-
-                if(scale.type === 'numeric' && this.option('DomainRoundMode') !== 'none') {
-                    var currDomain = scale.domain(),
-                        origDomain = this.domain || def.assert("Original domain must be set"),
-                        currLength = currDomain[1] - currDomain[0];
-                    if(currLength) {
-                        // begin diff
-                        var diff = origDomain[0] - currDomain[0];
-                        if(diff > 0) roundingPaddings.begin = diff / currLength;
-
-                        // end diff
-                        diff = currDomain[1] - origDomain[1];
-                        if(diff > 0) roundingPaddings.end = diff / currLength;
-                    }
+                    var tickFormatter = this.option('TickFormatter');
+                    if(tickFormatter) scale.tickFormatter(tickFormatter);
                 }
             }
 
-            this._roundingPaddings = roundingPaddings;
-        }
+            return this;
+        },
 
-        return roundingPaddings;
-    },
+        setTicks: function(ticks) {
+            var scale = this.scale;
 
-    calcContinuousTicks: function(desiredTickCount) {
-        if(desiredTickCount == null) desiredTickCount = this.option('DesiredTickCount');
+            /*jshint expr:true */
+            (scale && !scale.isNull) || def.fail.operationInvalid("Scale must be set and non-null.");
 
-        return this.scale.ticks(desiredTickCount, {
-                roundInside:       this.option('DomainRoundMode') !== 'tick',
-                numberExponentMin: this.option('TickExponentMin'),
-                numberExponentMax: this.option('TickExponentMax')
-            });
-    },
+            this.ticks = ticks;
 
-    _getOptionsDefinition: function() {
-        return cartAxis_optionsDef;
-    },
+            if(scale.type !== 'discrete' && this.option('DomainRoundMode') === 'tick') {
 
-    _registerResolversNormal: function(rs, keyArgs) {
-        // II - By V1 Only Logic
-        if(this.chart.compatVersion() <= 1) rs.push(this._resolveByV1OnlyLogic);
+                delete this._roundingPaddings;
 
-        // IV - By OptionId
-        rs.push(this._resolveByOptionId, this._resolveByOrientedId);
+                // Commit calculated ticks to scale's domain
+                var tickCount = ticks && ticks.length;
+                if(tickCount)
+                    this.scale.domain(ticks[0], ticks[tickCount - 1]);
+                else
+                    // Reset scale domain
+                    this.scale.domain(this.domain[0], this.domain[1]);
+            }
+        },
 
-        if(this.index === 1) rs.push(this._resolveByV1OptionId);
+        setScaleRange: function(size) {
+            var scale  = this.scale;
+            scale.min  = 0;
+            scale.max  = size;
+            scale.size = size; // original size // TODO: remove this...
 
-        rs.push(this._resolveByScaleType, this._resolveByCommonId);
+            // -------------
 
-    },
+            if(scale.type === 'discrete') {
+                if(scale.domain().length > 0) { // Has domain? At least one point is required to split.
+                    var bandRatio = this.chart.options.panelSizeRatio || 0.8;
+                    scale.splitBandedCenter(scale.min, scale.max, bandRatio);
+                }
+            } else {
+                scale.range(scale.min, scale.max);
+            }
 
-    // xAxisOffset, yAxisOffset, x2AxisOffset
-    _resolveByOrientedId: pvc.options.specify(function(optionInfo) {
-        return this._chartOption(this.orientedId + "Axis" + optionInfo.name);
-    }),
+            return scale;
+        },
 
-    // secondAxisOffset
-    _resolveByV1OptionId: pvc.options.specify(function(optionInfo) {
-        return this._chartOption('secondAxis' + optionInfo.name);
-    }),
+        getScaleRoundingPaddings: function() {
+            var roundingPaddings = this._roundingPaddings;
+            if(!roundingPaddings) {
+                roundingPaddings = {
+                    begin: 0,
+                    end:   0,
+                    beginLocked: false,
+                    endLocked:   false
+                };
 
-    // numericAxisLabelSpacingMin
-    _resolveByScaleType: pvc.options.specify(function(optionInfo) {
-        // this.scaleType
-        // * discrete
-        // * numeric    | continuous
-        // * timeSeries | continuous
-        var st = this.scaleType;
-        if(st) {
-            var name  = optionInfo.name,
-                value = this._chartOption(st + 'Axis' + name);
-            if(value === undefined && st !== 'discrete')
-                value = this._chartOption('continuousAxis' + name);
+                var scale = this.scale;
+                if(scale && !scale.isNull && scale.type !== 'discrete') {
+                    var originalDomain = this.domain;
 
-            return value;
-        }
-    }),
+                    roundingPaddings.beginLocked = originalDomain.minLocked;
+                    roundingPaddings.endLocked   = originalDomain.maxLocked;
 
-    // axisOffset
-    _resolveByCommonId: pvc.options.specify(function(optionInfo) {
-        return this._chartOption('axis' + optionInfo.name);
-    })
-});
+                    if(scale.type === 'numeric' && this.option('DomainRoundMode') !== 'none') {
+                        var currDomain = scale.domain(),
+                            origDomain = this.domain || def.assert("Original domain must be set"),
+                            currLength = currDomain[1] - currDomain[0];
+                        if(currLength) {
+                            // begin diff
+                            var diff = origDomain[0] - currDomain[0];
+                            if(diff > 0) roundingPaddings.begin = diff / currLength;
+
+                            // end diff
+                            diff = currDomain[1] - origDomain[1];
+                            if(diff > 0) roundingPaddings.end = diff / currLength;
+                        }
+                    }
+                }
+
+                this._roundingPaddings = roundingPaddings;
+            }
+
+            return roundingPaddings;
+        },
+
+        calcContinuousTicks: function(desiredTickCount) {
+            if(desiredTickCount == null) desiredTickCount = this.option('DesiredTickCount');
+
+            return this.scale.ticks(desiredTickCount, {
+                    roundInside:       this.option('DomainRoundMode') !== 'tick',
+                    numberExponentMin: this.option('TickExponentMin'),
+                    numberExponentMax: this.option('TickExponentMax')
+                });
+        },
+
+        _registerResolversNormal: function(rs, keyArgs) {
+            // II - By V1 Only Logic
+            if(this.chart.compatVersion() <= 1) rs.push(this._resolveByV1OnlyLogic);
+
+            // IV - By OptionId
+            rs.push(this._resolveByOptionId, this._resolveByOrientedId);
+
+            if(this.index === 1) rs.push(this._resolveByV1OptionId);
+
+            rs.push(this._resolveByScaleType, this._resolveByCommonId);
+
+        },
+
+        // xAxisOffset, yAxisOffset, x2AxisOffset
+        _resolveByOrientedId: pvc.options.specify(function(optionInfo) {
+            return this._chartOption(this.orientedId + "Axis" + optionInfo.name);
+        }),
+
+        // secondAxisOffset
+        _resolveByV1OptionId: pvc.options.specify(function(optionInfo) {
+            return this._chartOption('secondAxis' + optionInfo.name);
+        }),
+
+        // numericAxisLabelSpacingMin
+        _resolveByScaleType: pvc.options.specify(function(optionInfo) {
+            // this.scaleType
+            // * discrete
+            // * numeric    | continuous
+            // * timeSeries | continuous
+            var st = this.scaleType;
+            if(st) {
+                var name  = optionInfo.name,
+                    value = this._chartOption(st + 'Axis' + name);
+                if(value === undefined && st !== 'discrete')
+                    value = this._chartOption('continuousAxis' + name);
+
+                return value;
+            }
+        }),
+
+        // axisOffset
+        _resolveByCommonId: pvc.options.specify(function(optionInfo) {
+            return this._chartOption('axis' + optionInfo.name);
+        })
+    }
+}));
 
 /**
  * Obtains the orientation of the axis given an axis type and a chart orientation.
@@ -381,8 +378,7 @@ function cartAxis_castTitleSize(value) {
     return pvc_Size.to(value, {singleProp: pvc.BasePanel.orthogonalLength[position]});
 }
 
-/*global axis_optionsDef:true*/
-var cartAxis_optionsDef = def.create(axis_optionsDef, {
+pvc_CartesianAxis.options({
     Visible: {
         resolve: '_resolveFull',
         data: {

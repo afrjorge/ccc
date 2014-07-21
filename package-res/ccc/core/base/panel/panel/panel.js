@@ -259,7 +259,7 @@ def
     },
     
     _createLogInstanceId: function() {
-        return "" + this.constructor + this.chart._createLogChildSuffix();
+        return "" + def.qualNameOf(this.constructor) + this.chart._createLogChildSuffix();
     },
     
     // For adding legend groups dynamically.
@@ -1925,7 +1925,8 @@ def
     isOrientationVertical:   function(o) { return this.chart.isOrientationVertical  (o); },
     isOrientationHorizontal: function(o) { return this.chart.isOrientationHorizontal(o); }
 })
-.addStatic({
+.type()
+.add({
     // Determine what is the associated method to
     // call to position the labels correctly
     relativeAnchor: {

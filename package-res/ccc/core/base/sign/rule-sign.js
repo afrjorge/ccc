@@ -18,9 +18,7 @@ def.type('pvc.visual.Rule', pvc.visual.Sign)
             ._bindProperty('lineWidth',   'strokeWidth');
     }
 })
-.prototype
 .property('strokeWidth')
-.constructor
 .add({
     _addInteractive: function(keyArgs) {
         var t = true;

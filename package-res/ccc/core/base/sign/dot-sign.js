@@ -32,11 +32,9 @@ def.type('pvc.visual.Dot', pvc.visual.Sign)
     this.optional('strokeDasharray', undefined) // Break inheritance
         .optional('lineWidth',       1.5);      // Idem
 })
-.prototype
-.property('size')
+.property('size' )
 .property('shape')
-.constructor
-.add({
+pvc.visual.Dot.add({
     /* Sign Spatial Coordinate System
      *  -> Cartesian coordinates
      *  -> Grows Up, vertically, and Right, horizontally

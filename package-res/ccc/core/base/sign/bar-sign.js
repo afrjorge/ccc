@@ -15,9 +15,7 @@ def.type('pvc.visual.Bar', pvc.visual.Sign)
 
     this._bindProperty('lineWidth',  'strokeWidth');
 })
-.prototype
 .property('strokeWidth')
-.constructor
 .add({
     /* COLOR */
     /**

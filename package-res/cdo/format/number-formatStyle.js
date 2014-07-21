@@ -11,7 +11,7 @@ var numFormStyle = cdo.numberFormatStyle = function(other, proto) {
     return new NumFormStyle(other, proto);
 };
 
-var numForm_sharedProp = def.shared().property('safe');
+var numForm_privProp = def.priv.key().property();
 
 /**
  * Builds a number format style,
@@ -26,13 +26,14 @@ var numForm_sharedProp = def.shared().property('safe');
  * It can be another instance of number format style, or a generic object, alike.
  * @param {cdo.NumberFormatStyle} [proto=null] The prototype instance to connect to, for obtaining default values.
  */
-function NumFormStyle() {
-    def.instance(this, numFormStyle, numForm_sharedProp, arguments);
+function NumFormStyle(config, proto) {
+    def.classify(this, numFormStyle);
+    def.instance(this, config, proto, /*specs*/null, numForm_privProp);
 }
 
 cdo.NumberFormatStyle = NumFormStyle;
 
-def.classAccessors(NumFormStyle, numForm_sharedProp, /** @lends cdo.NumberFormatStyle# */{
+def.classAccessors(NumFormStyle, /** @lends cdo.NumberFormatStyle# */{
     /**
      * Gets or sets the character to use in place of the `.` mask character.
      * The decimal point separates the integer and fraction parts of the number.
@@ -53,7 +54,7 @@ def.classAccessors(NumFormStyle, numForm_sharedProp, /** @lends cdo.NumberFormat
      * @param {string} [_] The new group separator.
      * @return {cdo.NumberFormatStyle} <tt>this</tt> or the current group separator.
      */
-    group:  {cast: String},
+    group: {cast: String},
 
     /**
      * Gets or sets the array of group sizes.
@@ -114,7 +115,8 @@ def.classAccessors(NumFormStyle, numForm_sharedProp, /** @lends cdo.NumberFormat
      * @returns {cdo.NumberFormatStyle} <tt>this</tt> or the current fractional pad character.
      */
     fractionPad: {cast: String, fail: def.falsy}
-});
+
+}, numForm_privProp);
 
 def.copyOwn(NumFormStyle.prototype, /** @lends cdo.NumberFormatStyle# */ {
     /**
@@ -126,11 +128,15 @@ def.copyOwn(NumFormStyle.prototype, /** @lends cdo.NumberFormatStyle# */ {
      * <tt>undefined</tt> otherwise.
      */
     tryConfigure: function(other) {
-        if(def.is(other, numFormStyle)) {
-            // Not copying directly cause local setters would be bypassed.
-            def.configureGeneric(this, numForm_sharedProp(other));
-            return true;
-        }
+        if(def.is(other, numFormStyle))
+            return !!this
+                .integerPad(other.integerPad())
+                .fractionPad(other.fractionPad())
+                .decimal(other.decimal())
+                .group(other.group())
+                .groupSizes(other.groupSizes())
+                .negativeSign(other.negativeSign())
+                .currency(other.currency());
     }
 });
 

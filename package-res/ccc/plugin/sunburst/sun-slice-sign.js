@@ -7,9 +7,7 @@ def
 
     this._bindProperty('lineWidth', 'strokeWidth');
 })
-.prototype
 .property('strokeWidth')
-.constructor
 .add({
     defaultStrokeWidth: def.fun.constant(0.5),
 

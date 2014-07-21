@@ -91,7 +91,8 @@ def
         return this.orientation === pvc.orientation.horizontal;
     }
 })
-.addStatic({
+.type()
+.add({
     registerClass: function(Class, type) {
         pvc_plotPanelClassByType[type || Class.prototype.plotType] = Class;
     },

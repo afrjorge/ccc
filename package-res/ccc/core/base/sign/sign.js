@@ -36,6 +36,7 @@ def.type('pvc.visual.Sign', pvc.visual.BasicSign)
 
     panel._addSign(this);
 })
+.add(pvc.visual.Interactive)
 .add({
     // NOTE: called during init
     createDefaultWrapper: function() {
@@ -45,57 +46,6 @@ def.type('pvc.visual.Sign', pvc.visual.BasicSign)
         return function(f) {
             return function(scene) { return f.call(me.context(), scene); };
         };
-    },
-
-    // To be called on prototype
-    property: function(name) {
-        var upperName  = def.firstUpperCase(name),
-            baseName   = 'base'        + upperName,
-            defName    = 'default'     + upperName,
-            normalName = 'normal'      + upperName,
-            interName  = 'interactive' + upperName,
-            methods = {};
-
-        // ex: color
-        methods[name] = function(scene, arg) {
-            this._finished = false;
-            this._arg = arg; // for use in calling default methods (see #_bindProperty)
-
-            // ex: baseColor
-            var value = this[baseName](scene, arg);
-            if(value == null ) return null; // undefined included
-            if(this._finished) return value;
-
-            // ex: interactiveColor or normalColor
-            value = this[this.showsInteraction() && scene.anyInteraction() ? interName : normalName](scene, value, arg);
-
-            // Possible memory leak in case of error but it is not serious.
-            // Performance is more important so no try/finally is added.
-            this._arg = null;
-
-            return value;
-        };
-
-        // baseColor
-        //   Override this method if user extension
-        //   should not always be called.
-        //   It is possible to call the default method directly, if needed.
-        //   defName is installed as a user extension and
-        //   is called if the user hasn't extended...
-        methods[baseName]   = function(/*scene, arg*/) { return this.delegateExtension(); };
-
-        // defaultColor
-        methods[defName]    = function(/*scene, arg*/) { /*return;*/ };
-
-        // normalColor
-        methods[normalName] = function(scene, value/*, arg*/) { return value; };
-
-        // interactiveColor
-        methods[interName]  = function(scene, value/*, arg*/) { return value; };
-
-        this.constructor.add(methods);
-
-        return this;
     },
 
     // Use (at least) in TreemapPanel to add isActiveDescendantOrSelf
@@ -235,10 +185,58 @@ def.type('pvc.visual.Sign', pvc.visual.BasicSign)
         return this;
     }
 })
-.prototype
+.type()
+.add({
+    property: function(name) {
+        var upperName  = def.firstUpperCase(name),
+            baseName   = 'base'        + upperName,
+            defName    = 'default'     + upperName,
+            normalName = 'normal'      + upperName,
+            interName  = 'interactive' + upperName,
+            methods = {};
+
+        // ex: color
+        methods[name] = function(scene, arg) {
+            this._finished = false;
+            this._arg = arg; // for use in calling default methods (see #_bindProperty)
+
+            // ex: baseColor
+            var value = this[baseName](scene, arg);
+            if(value == null ) return null; // undefined included
+            if(this._finished) return value;
+
+            // ex: interactiveColor or normalColor
+            value = this[this.showsInteraction() && scene.anyInteraction() ? interName : normalName](scene, value, arg);
+
+            // Possible memory leak in case of error but it is not serious.
+            // Performance is more important so no try/finally is added.
+            this._arg = null;
+
+            return value;
+        };
+
+        // baseColor
+        //   Override this method if user extension
+        //   should not always be called.
+        //   It is possible to call the default method directly, if needed.
+        //   defName is installed as a user extension and
+        //   is called if the user hasn't extended...
+        methods[baseName]   = function(/*scene, arg*/) { return this.delegateExtension(); };
+
+        // defaultColor
+        methods[defName]    = function(/*scene, arg*/) { /*return;*/ };
+
+        // normalColor
+        methods[normalName] = function(scene, value/*, arg*/) { return value; };
+
+        // interactiveColor
+        methods[interName]  = function(scene, value/*, arg*/) { return value; };
+
+        return this.add(methods);
+    }
+})
+.inst()
 .property('color')
-.constructor
-.add(pvc.visual.Interactive)
 .add({
     extensionAbsIds: null,
 

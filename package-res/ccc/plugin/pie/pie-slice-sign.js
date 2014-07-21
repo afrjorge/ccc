@@ -53,9 +53,7 @@ def.type('pvc.visual.PieSlice', pvc.visual.Sign)
         .lock('top',   null)
         .lock('right', null);
 })
-.prototype
 .property('offsetRadius')
-.constructor
 .add({
     angle: def.fun.constant(0),
 

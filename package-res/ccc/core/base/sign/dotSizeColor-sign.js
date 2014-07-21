@@ -41,9 +41,7 @@ def
         }
     }
 })
-.prototype
 .property('strokeWidth')
-.constructor
 .add({
     isColorBound: false,
     isColorDiscrete: false,

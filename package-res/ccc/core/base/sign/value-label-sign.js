@@ -32,11 +32,10 @@ def
         ._bindProperty('textStyle', 'textColor', 'color')
         .intercept('visible', this.visible);
 })
-.prototype
 .property('text')
 .property('textStyle')
-.constructor
-.addStatic({
+.type()
+.add(/** @lends pvc.visual.ValueLabel */{
     maybeCreate: function(panel, anchorMark, keyArgs) {
         return panel.valuesVisible && panel.valuesMask
             ? new pvc.visual.ValueLabel(panel, anchorMark, keyArgs)
@@ -45,7 +44,8 @@ def
 
     isNeeded: function(panel) { return panel.valuesVisible && panel.valuesMask; }
 })
-.add({
+.inst()
+.add(/** @lends pvc.visual.ValueLabel# */{
     _addInteractive: function(keyArgs) {
         // TODO: Until the problem of tooltips being stolen
         // from the target element, its better to not process events.
