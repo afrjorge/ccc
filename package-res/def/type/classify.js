@@ -43,6 +43,7 @@ def.copyOwn(def, /** @lends def */{
      * @return {function|undefined} The class of the value, or <tt>undefined</tt>, when there is none.
      */
     classOf: function(v) {
+        // NOTE: _class can be inherited (just like constructor)
         return (v && (v._class || v.constructor)) || undefined;
     },
 

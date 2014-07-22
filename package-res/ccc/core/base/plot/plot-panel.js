@@ -93,11 +93,11 @@ def
 })
 .type()
 .add({
-    registerClass: function(Class, type) {
-        pvc_plotPanelClassByType[type || Class.prototype.plotType] = Class;
+    registerClass: function(Class, typeName) {
+        pvc_plotPanelClassByType[typeName || Class.prototype.plotType] = Class;
     },
 
-    getClass: function(type) {
-        return def.getOwn(pvc_plotPanelClassByType, type);
+    getClass: function(typeName) {
+        return def.getOwn(pvc_plotPanelClassByType, typeName);
     }
 });

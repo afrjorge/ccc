@@ -195,3 +195,55 @@ function def_makeSetter(name, spec) {
         return vSet;
     }
 }
+
+// ------------------
+
+function FieldsType(Ctor, baseType, keyArgs) {
+
+    def.Type.apply(this, arguments);
+
+    // Inherit base fieldsPrivProp.
+    // Cannot change in the middle of the hierarchy,
+    // but only in immediate sub-types of FieldsType.
+    var baseType = this.baseType;
+    if(baseType) {
+        this.fieldsPrivProp = (baseType.Type === FieldsType)
+            ? (def.get(keyArgs, 'fieldsPrivProp') || fields_privProp)
+            : baseType.fieldsPrivProp;
+    }
+}
+
+def.Type.subType(FieldsType, {
+    methods: /** @lends  def.FieldsType# */{
+        fields: function(specs) {
+            var accessors = {};
+            for(var name in specs) accessors[name] = def.classAccessor(name, specs[name], this.fieldsPrivProp);
+            return this.methods(accessors);
+        },
+
+        _addInitSteps: function(steps) {
+            // Called after post steps are added.
+
+            // Last thing to initialize is configuration.
+            function initConfig(config, proto) {
+                if(config) def.configure(this, config);
+            }
+
+            steps.push(initConfig);
+
+            // `base` adds init steps.
+            this.base(steps);
+
+            // First thing to initialize is initFields
+            var type = this;
+
+            function initFields(config, proto) {
+                def.fields(this, proto, type.fieldsPrivProp);
+            }
+
+            steps.push(initFields);
+        }
+    }
+});
+
+def('FieldsBase', FieldsType.Ctor);

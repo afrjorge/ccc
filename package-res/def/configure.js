@@ -23,7 +23,7 @@ def.configure = def.config = def_config;
 function def_config(pub, config) {
     if(config) {
         var cfg = pub.configure;
-        if(def.fun.is(cfg) && cfg.length === 1)
+        if(def.fun.is(cfg))
             cfg.call(pub, config);
         else
             def_config.generic(pub, config);
@@ -38,8 +38,8 @@ def.copyOwn(def_config, /** @lends def.configure */{
      * This function is used when the object being configured does not directly implement
      * a "configure" method.
      *
-     * @param {object} pub An object to configure.
-     * @param {object} [config] A configuration object.
+     * @param {object|Array} pub An object to configure.
+     * @param {object} [configs] A configuration object or an array of.
      * If it is a direct instance of <tt>Object</tt> (like objects created using literals),
      * then its own and inherited properties are used to configure <i>pub</i>.
      *
@@ -48,15 +48,15 @@ def.copyOwn(def_config, /** @lends def.configure */{
      *
      * @return {object} The configured object, <i>pub</i>.
      */
-    generic: function(pub, config) {
-        var m;
-        if(config) {
+    generic: function(pub, configs) {
+        if(configs) def.array.each(configs, function(config) {
+            var m;
             if(config.constructor === Object)
                 def_config.setters(pub, config);
             else if(pub !== config && (m = pub.tryConfigure) && def.fun.is(m) && m.call(pub, config))
                 ; // noop
             // TODO: else log ignored
-        }
+        });
         return pub;
     },
 
@@ -82,12 +82,13 @@ def.copyOwn(def_config, /** @lends def.configure */{
     },
 
     setter: function(pub, name, value) {
-        var m, l, v0;
+        var m, m0, l, v0;
 
         if(value !== undefined &&
            def_config.isPropConfigurable(name) &&
            def.fun.is((m = pub[name])) &&
-           def.get(def.meta(m), 'configurable', (l = m.length) >= 1)) {
+           (m0 = m.valueOf()) &&
+           def.get(def.meta(m0), 'configurable', (l = m0.length) >= 1)) {
 
             // TODO: Check possible break of extension point legend$Dot
             if(def.attached.is(name)) {
@@ -103,74 +104,84 @@ def.copyOwn(def_config, /** @lends def.configure */{
         return pub;
     },
 
-    expand1: function(config) {
-        return def_config_expand(config, true);
+    expand1: function(configs) {
+        return def_config_expand(configs, true);
     },
 
     expand: def_config_expand
 });
 
-function def_config_expand(config, one) {
-    if(!config) return [];
+function def_config_expand(configs, one) {
+    if(!configs) return [];
 
-    var root = {}, roots = [root];
+    var roots = [];
 
-    for(var name in config) if(name) {
-        var v = config[name];
-        if(v === undefined) continue;
-
-        var curr  = root,
-            di    = name.indexOf('.'),
-            names = null, L, i, n, next;
-
-        if(di >= 0) {
-            if(one) {
-                names = [name.substr(0, di)];
-                name  = name.substr(di + 1);
-            } else {
-                names = name.split('.');
-                name  = names.pop();
-            }
-            L = names.length;
-            i = -1;
-            while(++i < L) if((n = names[i])) {
-                next = curr[n];
-                if(next === undefined) {
-                    curr[n] = next = {};
-                } else if(next === null || !def.object.is(next) || next.constructor !== Object) {
-                    // Create a new root, and recreate the path
-                    roots.push((root = next = {}));
-                    i = -1;
-                }
-                curr = next;
-            }
-        }
-
-        var v0 = curr[name];
-        if(v0 !== v) {
-            if(v0 !== undefined) {
-                // Unless these are both "merge-able" objects
-                //  this means that the user is somehow depending on the order
-                //  of keys in objects, something which is not standard in ECMAScript,
-                //  or consistent across JS engines.
-                // We support only plain JS objects and Arrays.
-                // Anything else is considered an error, logged and skipped.
-                if(!def_config_isMergeableObject(v) || !def_config_isMergeableObject(v0))
-                    continue; // TODO: log this
-
-                // Let pass-through, but create a new root, to avoid any possible semantic confusions
-                roots.push((root = curr = {}));
-                if(names) {
-                    i = -1;
-                    while(++i < L) if((n = names[i])) curr = curr[n] = {};
-                }
-            }
-
-            curr[name] = v;
-        }
-    }
+    if(def.array.is(configs))
+        configs.forEach(processConfig);
+    else
+        processConfig(configs);
 
     return roots;
+
+    function processConfig(config) {
+        var root = {};
+        roots.push(root);
+
+        for(var name in config) if(name) {
+            var v = config[name];
+            if(v === undefined) continue;
+
+            var curr  = root,
+                di    = name.indexOf('.'),
+                names = null, L, i, n, next;
+
+            if(di >= 0) {
+                if(one) {
+                    names = [name.substr(0, di)];
+                    name  = name.substr(di + 1);
+                } else {
+                    names = name.split('.');
+                    name  = names.pop();
+                }
+                L = names.length;
+                i = -1;
+                while(++i < L) if((n = names[i])) {
+                    next = curr[n];
+                    if(next === undefined) {
+                        curr[n] = next = {};
+                    } else if(next === null || !def.object.is(next) || next.constructor !== Object) {
+                        // Create a new root, and recreate the path
+                        roots.push((root = next = {}));
+                        i = -1;
+                    }
+                    curr = next;
+                }
+            }
+
+            var v0 = curr[name];
+            if(v0 !== v) {
+                if(v0 !== undefined) {
+                    // Unless these are both "merge-able" objects
+                    //  this means that the user is somehow depending on the order
+                    //  of keys in objects, something which is not standard in ECMAScript,
+                    //  or consistent across JS engines.
+                    // We support only plain JS objects and Arrays.
+                    // Anything else is considered an error, logged and skipped.
+                    if(!def_config_isMergeableObject(v) || !def_config_isMergeableObject(v0))
+                        continue; // TODO: log this
+
+                    // Let pass-through, but create a new root, to avoid any possible semantic confusions
+                    roots.push((root = curr = {}));
+                    if(names) {
+                        i = -1;
+                        while(++i < L) if((n = names[i])) curr = curr[n] = {};
+                    }
+                }
+
+                curr[name] = v;
+            }
+        }
+    }
 }
 
 function def_config_isMergeableObject(v) {

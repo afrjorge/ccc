@@ -61,7 +61,12 @@ def.copyOwn(def, /** @lends def */{
 
         to: function(v) { return typeof v === 'function' ? v : def.fun.constant(v); },
 
-        constant: function(v) { return function() { return v; }; }
+        constant: function(v) { return function() { return v; }; },
+
+        wraps: function(by, wrapped) {
+            by.valueOf = def.fun.constant(wrapped);
+            return by;
+        }
     }
 });
 

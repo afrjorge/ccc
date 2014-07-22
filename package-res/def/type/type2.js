@@ -9,17 +9,14 @@
  * @param {object} [baseType] The base type.
  * @param {object} [space] The namespace where to define a named type.
  * The default namespace is the current namespace.
+ *
+ * @deprecated use <i>extend</i> on a base constructor instead.
  */
 def.type = def.argumentsTypeBound([
     // name[, baseType[, space]] | baseType[, space] | space
     'string', 'function', 'object'
 ], function(name, baseCtor, space) {
-    var TypeMeta;
-    if(baseCtor)
-        TypeMeta = def.fun.is(baseCtor) ? baseCtor.Meta : baseCtor.ctor.Meta;
-    else
-        TypeMeta = def_TypeMeta;
-
-    var ctor = new TypeMeta({base: baseCtor || def_Object}).ctor;
-    return def(name, ctor, space);
+    var BaseType = baseCtor ? baseCtor.Type : def_Type,
+        Ctor = BaseType.extend().Ctor;
+    return def(name, Ctor, space);
 });

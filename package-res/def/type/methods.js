@@ -2,16 +2,19 @@ def.methods = def_methods;
 def.method  = def_method;
 def.abstractMethod = def.fail.notImplemented;
 
-function def_methods(proto, mixin, ka) {
+function def_methods(proto, mixins, ka) {
     proto = F_protoOrSelf(proto);
 
     var baseProto  = def.protoOf(proto), // Hoping a proper prototype chain exists.
         rootProto  = def.rootProtoOf(proto),
         enumerable = def.get(ka, 'enumerable', true);
 
-    def.each(F_protoOrSelf(mixin), function(v, p) {
-        def_method_(proto, p, v, baseProto, rootProto, enumerable);
+    def.array.each(mixins, function(mixin) {
+        def.each(F_protoOrSelf(mixin), function(v, p) {
+            def_method_(proto, p, v, baseProto, rootProto, enumerable);
+        });
     });
+
     return def;
 }
 

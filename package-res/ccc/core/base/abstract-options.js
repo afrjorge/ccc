@@ -2,46 +2,45 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-function OptionsTypeMeta(ka) {
+function OptionsType() {
 
-    def.Object.Meta.call(this, ka);
+    def.Type.apply(this, arguments);
 
     // Inherit base options' defs
-    var baseOptsDef = this.baseMeta && this.baseMeta.optionsDef,
-        optsDef = this.optionsDef = def.create(baseOptsDef);
-
-    this.Type.add({
-        // Specify local options' defs
-        options: function(optionsDef) {
-            return def.mixin(optsDef, optionsDef), this;
-        }
-    });
+    var baseOptsDef = this.baseType && this.baseType.optionsDef;
+    this.optionsDef = def.create(baseOptsDef);
 }
 
-def.inherits(OptionsTypeMeta, def.Object.Meta);
-def.methods(OptionsTypeMeta, {
-    addInitSteps: function(steps) {
-        // Called after post steps are added
+def.Type.subType(OptionsType, {
+    methods: /** @lends pvc.OptionsType# */{
+        // Specify local options' defs
+        options: function(optionsDef) {
+            return def.mixin(this.optionsDef, optionsDef), this;
+        },
 
-        // Add init steps
-        this.base(steps);
+        _addInitSteps: function(steps) {
+            // Called after post steps are added
 
-        // First thing to execute is initOptions
-        var meta = this;
+            // Add init steps
+            this.base(steps);
 
-        function initOptions() {
-            this.option = pvc.options(meta.optionsDef, this);
+            // First thing to execute is initOptions
+            var type = this;
+
+            function initOptions() {
+                this.option = pvc.options(type.optionsDef, this);
+            }
+
+            steps.push(initOptions);
         }
-
-        steps.push(initOptions);
     }
 });
 
 // --------------
 
-var pvc_OptionBase = new OptionsTypeMeta({base: def.Object}).ctor;
+var pvc_OptionBase = OptionsType.Ctor;
 
-def('pvc.visual.OptionsBase', pvc_OptionBase).configure({
+def('pvc.visual.OptionsBase', pvc_OptionBase.configure({
     /**
      * Initializes the object with options.
      *
@@ -67,8 +66,8 @@ def('pvc.visual.OptionsBase', pvc_OptionBase).configure({
      *     Defaults to <tt>true</tt> if <i>index</i> is 0.
      */
     init: function(chart, type, index, keyArgs) {
-        this.chart = chart;
         this.type  = type;
+        this.chart = chart;
         this.index = index == null ? 0 : index;
         this.name  = def.get(keyArgs, 'name');
         this.id    = def.indexedId(this.type, this.index);
@@ -168,5 +167,5 @@ def('pvc.visual.OptionsBase', pvc_OptionBase).configure({
             if(value != null) return optionInfo.specify(value), true;
         }
     }
-});
+}));
 

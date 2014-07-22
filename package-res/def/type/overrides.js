@@ -25,7 +25,7 @@ function def_overrides(method, base, proto) {
         } finally { proto.base = _; }
     }
 
-    return proto ? overridenClass : overridenInstance;
+    return def.fun.wraps(proto ? overridenClass : overridenInstance, method);
 }
 
 function def_overridesDyn(proto, name, method, baseProto) {
@@ -45,7 +45,7 @@ function def_overridesDyn(proto, name, method, baseProto) {
         } finally { proto.base = _; }
     }
 
-    return overridenClassDyn;
+    return def.fun.wraps(overridenClassDyn, method);
 }
 
 // this.base, me.base, ...

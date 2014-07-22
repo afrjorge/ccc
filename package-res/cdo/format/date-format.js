@@ -49,7 +49,7 @@ var dateForm = cdo.dateFormat = function(config, proto) {
 
     def.classify(dateFormat, dateForm);
 
-    fields = def.instance(dateFormat, config, proto, /** @lends  cdo.DateFormat# */{
+    fields = def.instance(dateFormat, config, proto, /** @lends cdo.DateFormat# */{
         /**
          * Gets or sets the formatting mask.
          *

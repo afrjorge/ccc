@@ -462,13 +462,15 @@ def.type('pvc.visual.Scene')
     // as some post-processing is required of the result of such functions.
     // Overriding a default _core_ method would make sense though.
     variable: function(name, impl) {
-        var proto = this.prototype, methods;
+        var methods;
+
+        if(!this._vars) this._vars = def.create(this.baseType && this.baseType._vars);
 
         // Var already defined (local or inherited)?
-        if(!proto._vars || !proto._vars[name]) {
-            if(!(proto.hasOwnProperty('_vars'))) proto._vars = def.create(proto._vars);
+        if(!this._vars[name]) {
+            this._vars[name] = true;
 
-            proto._vars[name] = true;
+            var instProto = this.Ctor.prototype;
 
             // Variable Class methods
             // ex:
@@ -483,11 +485,11 @@ def.type('pvc.visual.Scene')
             var nameEvalCore = nameEval + 'Core';
 
             // _Eval_ Already defined?
-            if(!def.hasOwn(proto, nameEval)) methods[nameEval] = def.methodCaller(nameEvalCore);
+            if(!def.hasOwn(instProto, nameEval)) methods[nameEval] = def.methodCaller(nameEvalCore);
 
             // _EvalCore_ already defined?
-            if(!def.hasOwn(proto, nameEvalCore))
-            // Normalize undefined to null (working as a default value)
+            if(!def.hasOwn(instProto, nameEvalCore))
+                // Normalize undefined to null (working as a default value)
                 methods[nameEvalCore] = def.fun.to(impl === undefined ? null : impl);
         } else if(impl !== undefined) {
             // Override (EvalCore) implementation
@@ -495,7 +497,7 @@ def.type('pvc.visual.Scene')
         }
 
         // Add methods to class
-        if(methods) this.add(methods);
+        if(methods) this.methods(methods);
 
         return this;
     }

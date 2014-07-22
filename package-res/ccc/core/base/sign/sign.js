@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-def('pvc.visual.Sign', pvc.visual.BasicSign.extend({
+def('pvc.visual.Sign', pvc.visual.BasicSign.extend([{
     init: function(panel, pvMark, keyArgs) {
         var me = this;
 
@@ -36,75 +36,71 @@ def('pvc.visual.Sign', pvc.visual.BasicSign.extend({
 
         panel._addSign(this);
     },
-    mixins: [
+    methods: [
         pvc.visual.Interactive
     ],
-    type: {
-        methods: /** @lends pvc.visual.Sign */{
-            properties: function(specs) {
-                var spec;
-                for(var n in specs) if((spec = specs[n]) !== undefined) {
-                    if(isNaN(+n))
-                        this.property(n);
-                    else if(def.string.is(spec))
-                        this.property(spec);
-                }
-                return this;
-            },
-            property: def.meta(function(name) {
-                var upperName  = def.firstUpperCase(name),
-                    baseName   = 'base'        + upperName,
-                    defName    = 'default'     + upperName,
-                    normalName = 'normal'      + upperName,
-                    interName  = 'interactive' + upperName,
-                    methods = {};
+    "type.methods": /** @lends pvc.visual.Sign */{
+        properties: function(specs) {
+            var spec;
+            for(var n in specs) if((spec = specs[n]) !== undefined) {
+                if(isNaN(+n))
+                    this.property(n);
+                else if(def.string.is(spec))
+                    this.property(spec);
+            }
+            return this;
+        },
+        property: def.meta(function(name) {
+            var upperName  = def.firstUpperCase(name),
+                baseName   = 'base'        + upperName,
+                defName    = 'default'     + upperName,
+                normalName = 'normal'      + upperName,
+                interName  = 'interactive' + upperName,
+                methods = {};
 
-                // ex: color
-                methods[name] = function(scene, arg) {
-                    this._finished = false;
-                    this._arg = arg; // for use in calling default methods (see #_bindProperty)
+            // ex: color
+            methods[name] = function(scene, arg) {
+                this._finished = false;
+                this._arg = arg; // for use in calling default methods (see #_bindProperty)
 
-                    // ex: baseColor
-                    var value = this[baseName](scene, arg);
-                    if(value == null ) return null; // undefined included
-                    if(this._finished) return value;
+                // ex: baseColor
+                var value = this[baseName](scene, arg);
+                if(value == null ) return null; // undefined included
+                if(this._finished) return value;
 
-                    // ex: interactiveColor or normalColor
-                    value = this[this.showsInteraction() && scene.anyInteraction() ? interName : normalName](scene, value, arg);
+                // ex: interactiveColor or normalColor
+                value = this[this.showsInteraction() && scene.anyInteraction() ? interName : normalName](scene, value, arg);
 
-                    // Possible memory leak in case of error but it is not serious.
-                    // Performance is more important so no try/finally is added.
-                    this._arg = null;
+                // Possible memory leak in case of error but it is not serious.
+                // Performance is more important so no try/finally is added.
+                this._arg = null;
 
-                    return value;
-                };
+                return value;
+            };
 
-                // baseColor
-                //   Override this method if user extension
-                //   should not always be called.
-                //   It is possible to call the default method directly, if needed.
-                //   defName is installed as a user extension and
-                //   is called if the user hasn't extended...
-                methods[baseName]   = function(/*scene, arg*/) { return this.delegateExtension(); };
+            // baseColor
+            //   Override this method if user extension
+            //   should not always be called.
+            //   It is possible to call the default method directly, if needed.
+            //   defName is installed as a user extension and
+            //   is called if the user hasn't extended...
+            methods[baseName]   = function(/*scene, arg*/) { return this.delegateExtension(); };
 
-                // defaultColor
-                methods[defName]    = function(/*scene, arg*/) { /*return;*/ };
+            // defaultColor
+            methods[defName]    = function(/*scene, arg*/) { /*return;*/ };
 
-                // normalColor
-                methods[normalName] = function(scene, value/*, arg*/) { return value; };
+            // normalColor
+            methods[normalName] = function(scene, value/*, arg*/) { return value; };
 
-                // interactiveColor
-                methods[interName]  = function(scene, value/*, arg*/) { return value; };
+            // interactiveColor
+            methods[interName]  = function(scene, value/*, arg*/) { return value; };
 
-                return this.add(methods);
-            }, {configurable: false})
-        }
+            return this.methods(methods);
+        }, {configurable: false})
     }
-})
-.configure({
+}, {
     properties: ['color']
-})
-.configure({
+}, {
     methods: /** @lends pvc.visual.Sign# */{
         extensionAbsIds: null,
 
@@ -530,7 +526,7 @@ def('pvc.visual.Sign', pvc.visual.BasicSign.extend({
         _onClick:       function(context) { context.click();       },
         _onDoubleClick: function(context) { context.doubleClick(); }
     }
-}));
+}]));
 
 /**
  * Pass this function to an extension point with a final property value

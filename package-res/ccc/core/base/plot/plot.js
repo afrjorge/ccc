@@ -354,15 +354,13 @@ def('pvc.visual.Plot', pvc.visual.OptionsBase.extend({
         }
     },
 
-    type: {
-        methods: {
-            registerClass: function(Class) {
-                pvc_plotClassByType[Class.prototype.type] = Class;
-            },
+    "type.methods": {
+        registerClass: function(Class) {
+            pvc_plotClassByType[Class.prototype.type] = Class;
+        },
 
-            getClass: function(type) {
-                return def.getOwn(pvc_plotClassByType, type);
-            }
+        getClass: function(type) {
+            return def.getOwn(pvc_plotClassByType, type);
         }
     }
 }));

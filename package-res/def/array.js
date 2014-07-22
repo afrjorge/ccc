@@ -32,6 +32,15 @@ def.array = /** @lends def.array */ {
         return A_slice.apply(al, A_slice.call(arguments, 1));
     },
 
+    each: function(a, f, x) {
+        if(a !== undefined) {
+            if(def.array.is(a))
+                a.forEach(f, x);
+            else
+                f.call(x, a, 0);
+        }
+    },
+
     like: def.copyOwn(
         function(v) { return AL.is(v) ? v : [v]; }, {
 

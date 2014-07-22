@@ -71,7 +71,6 @@
     'def/type/overrides',
     'def/type/methods',
     'def/type/Type',
-    'def/type/TypeMeta',
     'def/type/Object',
     'def/type/type2',
     'def/type/enum',
@@ -87,7 +86,7 @@
     'def/textTable',
     'def/math',
     'def/epilogue'
-            ]
+]
         }
     ],
 
