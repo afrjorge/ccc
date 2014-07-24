@@ -1713,7 +1713,7 @@ def
         if(!me._getExtensionAbs('base', 'fillStyle'))
             pvParentPanel.fillStyle(pvc.invisibleFill);
         
-        // Require all events, wether it's painted or not
+        // Require all events, whether it's painted or not
         pvParentPanel.lock('events', 'all');
         
         if(!useRubberband) {
@@ -1721,8 +1721,7 @@ def
                 // Install clearSelectionMode click
                 pvParentPanel
                     .event("click", function() {
-                        /*jshint expr:true */
-                        data.clearSelected() && chart.updateSelections();
+                        if(data.clearSelected()) chart.updateSelections();
                     });
             }
             return;

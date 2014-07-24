@@ -199,6 +199,21 @@ def.copyOwn(def, /** @lends def */{
         };
     }(Object.defineProperty)),
 
+    setConst: (function(O_defProp) {
+        if(!O_defProp)
+            return function(o, p, v) {
+                o[p] = v;
+                return o;
+            };
+
+        var constDesc = {enumerable: false, configurable: false, writable: false, value: undefined};
+        return function(o, p, v) {
+            constDesc.value = v;
+            O_defProp(o, p, constDesc);
+            return o;
+        };
+    }(Object.defineProperty)),
+
     /**
      * Calls a function
      * for every <i>own</i> property of a specified object.
@@ -307,6 +322,24 @@ def.copyOwn(def, /** @lends def */{
         return f
             ? keys.map(function(key) { return f.call(ctx, o[key], key); })
             : keys.map(function(key) { return o[key]; });
+    },
+
+    /**
+     * Constructs an instance of a class,
+     * from a an array of arguments.
+     * @alias make
+     * @memberOf def
+     * @param {function} Ctor The constructor function.
+     * @param {Array} [args] The array of arguments, or arguments object.
+     * @return {*} The constructed instance.
+     */
+    make: function(Ctor, args) {
+        var inst = Object.create(Ctor.prototype);
+        return Ctor.apply(inst, args || A_empty) || inst;
+    },
+
+    isPropPrivate: function(p) {
+        return !!p && p.charAt(0) === '_';
     }
 });
 

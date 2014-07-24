@@ -72,7 +72,7 @@ function def_getNamespace(name, base) {
  *
  * @param {String} name The name of the namespace to obtain.
  * If nully, the current namespace is implied.
- * @param {object} [base] The base namespace object.
+ * @param {String|object} [base] The base namespace object or name.
  * @param {Function} definition
  * A function that is called within the desired namespace
  * as first argument and while it is current.
@@ -84,6 +84,8 @@ def.space = function(name, base, definition) {
         definition = base;
         base = null;
     }
+
+    if(def.string.is(base)) base = def_getNamespace(base);
 
     var space = def_getNamespace(name, base);
     if(definition) {

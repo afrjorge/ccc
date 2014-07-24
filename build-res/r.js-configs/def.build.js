@@ -76,6 +76,7 @@
     'def/type/enum',
     'def/type/classify',
     'def/type/fields',
+    'def/type/bipole',
     'def/id',
     'def/collection/Set',
     'def/collection/Map',

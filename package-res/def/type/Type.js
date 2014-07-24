@@ -108,7 +108,7 @@ function def_TypeStatic_syncCtor(Ctor, mixins) {
         def.each(F_protoOrSelf(mixin), function(v, p) {
             // Do not copy private methods.
             // These are kept in Type# only.
-            if(p && p.charAt(0) !== '_') {
+            if(!def.isPropPrivate(p)) {
                 v = TypeProto[p];
                 if(def.fun.is(v))
                     def_TypeStatic_exportMethod(Ctor, p, v);

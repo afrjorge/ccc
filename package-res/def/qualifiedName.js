@@ -2,6 +2,8 @@ def.qualName = function(full) {
     return (full instanceof def_QualifiedName) ? full : new def_QualifiedName(full);
 };
 
+def.QualifiedName = def_QualifiedName;
+
 // TODO: improve this code with indexOf
 function def_QualifiedName(full) {
     var parts;
